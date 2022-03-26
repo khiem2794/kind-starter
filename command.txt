@@ -1,0 +1,68 @@
+kind create cluster --name=dev --config=cluster-config.yaml
+kind delete cluster --name=dev
+
+kubectl create deployment nginx-depl --image=nginx
+kubectl edit deployment nginx-depl
+kubectl port-forward deployment/nginx-depl 8080:80
+kubectl get deployment nginx-depl -o yaml > res.yaml 
+
+kubectl get pod -o wide
+kubectl describe pod nginx-depl-*************
+kubectl logs nginx-depl-*************
+kubectl exec -it nginx-depl-************* /bin/bash
+kubectl port-forward pods/nginx-depl-************* 8080:80
+
+kubectl delete deployment nginx-depl
+
+---------------------------------------------------------------------
+kubectl apply -f nginx-depl.yaml
+kubectl describe service nginx-svc 
+kubectl port-forward service/nginx-svc 8080:80
+kubectl delete -f nginx-depl.yaml
+
+---------------------------------------------------------------------
+kubectl apply -f mongodb_express_depl.yaml
+kubectl -n mongodb port-forward service/mongo-express-svc 8080:8081
+kubectl delete -f mongodb_express_depl.yaml
+
+----------------------------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+kubectl get pod -n ingress-nginx -w
+kubectl apply -f hello-world.yaml
+kubectl -n hello-world get ingress -w
+kubectl -n hello-world describe ingress hello-world-ingress
+kubectl delete -f hello-world.yaml
+
+------------------------------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+kubectl get pod -n ingress-nginx -w
+openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout tls.key -out tls.crt -subj "/CN=custom" -days 365
+kubectl create namespace hello-world-ossl
+kubectl -n hello-world-ossl create secret tls openssl-tls --cert=tls.crt --key=tls.key
+kubectl apply -f hello-world-ossl-depl.yaml
+kubectl -n hello-world-ossl get ingress -w
+kubectl delete -f hello-world-ossl-depl.yaml
+
+----------------------------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+kubectl get pod -n ingress-nginx -w
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.yaml
+kubectl apply -f hello-world-tls-ca.yaml
+kubectl apply -f hello-world-tls-depl.yaml
+kubectl -n hello-world-tls get ingress -w
+kubectl delete -f hello-world-tls-depl.yaml
+kubectl delete -f hello-world-tls-ca.yaml
+
+----------------------------------------------------------------------
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
+kubectl get pod -n kubernetes-dashboard -w
+kubectl -n kubernetes-dashboard get svc -o wide
+kubectl create clusterrolebinding default-admin --clusterrole cluster-admin --serviceaccount=default:default
+kubectl get serviceaccounts default -o yaml --namespace kube-system
+kubectl -n kube-system describe secret default-token-******
+
+kubectl -n kubernetes-dashboard port-forward service/kubernetes-dashboard 8080:443
+curl -k https://127.0.0.1:8080/
+
+
+kubectl delete -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.1.0/aio/deploy/recommended.yaml
